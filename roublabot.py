@@ -9,11 +9,11 @@ from dotenv import load_dotenv
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-MEMBER_ROLE_ID= 1336817078346453084 #à modifier avec l'identifiant du role que le bot doit donner
+MEMBER_ROLE_ID= 1201113600518017064 #à modifier avec l'identifiant du role que le bot doit donner
 # MEMBER_ROLE_ID = 1201113600518017064 #à modifier avec l'identifiant du role que le bot doit donner
 
 # Liste des serveurs disponibles
-SERVERS = ["Hellmina", "Draconiros", "Imagiro","Orukam","Tal Kasha","Tylezia","Ombre","Dakal","Salar","Kourial"
+SERVERS = ["Dakal","Draconiros","Hellmina","Imagiro","Kourial","Ombre","Orukam","Rafal","Salar","Tal Kasha","Tylezia"
            ,"Touch/Kelerog","Touch/Tiliwan","Touch/Blair","Touch/Talok"]
 MAX_NICKNAME_LENGTH = 32
 CONFIG_FILE = "bot_config.json"
