@@ -2,14 +2,19 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import json
- 
-BOT_TOKEN="insert_you_bot_token_here"
-MEMBER_ROLE_ID = 1201113600518017064 #à modifier avec l'identifiant du role que le bot doit donner
+import os
+from dotenv import load_dotenv
+
+# LOAD OUR TOKEN FROM .env
+load_dotenv()
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+
+MEMBER_ROLE_ID= 1336817078346453084 #à modifier avec l'identifiant du role que le bot doit donner
+# MEMBER_ROLE_ID = 1201113600518017064 #à modifier avec l'identifiant du role que le bot doit donner
 
 # Liste des serveurs disponibles
 SERVERS = ["Hellmina", "Draconiros", "Imagiro","Orukam","Tal Kasha","Tylezia","Ombre","Dakal","Salar","Kourial"
-           ,"Touch/Herdegrize","Touch/Oshimo","Touch/Terra Cogita","Touch/Tiliwan"
-           ,"Touch/Brutas","Touch/Dodge","Touch/grandapan","Touch/Talok","Touch/Epsilon"]
+           ,"Touch/Kelerog","Touch/Tiliwan","Touch/Blair","Touch/Talok"]
 MAX_NICKNAME_LENGTH = 32
 CONFIG_FILE = "bot_config.json"
 
@@ -71,7 +76,7 @@ class ServerSelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         server = self.values[0]
-        new_nickname = f"{self.character_name}[{server}]"
+        new_nickname = f"{self.character_name} [{server}]"
         
         if len(new_nickname) > MAX_NICKNAME_LENGTH:
             await interaction.response.send_message(
