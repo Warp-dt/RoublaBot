@@ -13,8 +13,8 @@ MEMBER_ROLE_ID= 1201113600518017064 #à modifier avec l'identifiant du role que 
 # MEMBER_ROLE_ID = 1201113600518017064 #à modifier avec l'identifiant du role que le bot doit donner
 
 # Liste des serveurs disponibles
-SERVERS = ["Dakal","Draconiros","Hellmina","Imagiro","Kourial","Ombre","Orukam","Rafal","Salar","Tal Kasha","Tylezia"
-           ,"Touch/Kelerog","Touch/Tiliwan","Touch/Blair","Touch/Talok"]
+SERVERS = ["Brial","Dakal","Draconiros","Hell Mina","Imagiro","Kourial","Ombre","Orukam","Rafal","Salar","Tal Kasha","Tylezia"
+           ,"Touch/Kelerog","Touch/Tiliwan","Touch/Blair","Touch/Talok","Retro/Allisteria","Retro/Boune","Retro/Fallanster"]
 MAX_NICKNAME_LENGTH = 32
 CONFIG_FILE = "bot_config.json"
 
@@ -149,8 +149,8 @@ async def on_member_join(member):
         
         view.add_item(RegisterButton())
         await channel.send(
-            f"Bienvenue {member.mention} ! Clique sur le bouton ci-dessous pour t'identifier :",
-            view=view
+            f"Bienvenue {member.mention} ! Clique sur le bouton ci-dessous pour t'identifier :"
+            ,view=view
         )
         
 
