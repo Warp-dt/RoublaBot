@@ -57,7 +57,7 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
         await interaction.response.send_message(
             f"Nom choisi : {self.character_name.value}\n**Choisissez votre serveur :**", 
             view=view,
-            ephemeral=False#True
+            ephemeral=True#True
         )
 
 class ServerSelect(discord.ui.Select):
