@@ -52,12 +52,22 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
     )
     
     async def on_submit(self, interaction: discord.Interaction):
+        # Vérifie si le nom contient un chiffre
+        if any(char.isdigit() for char in self.character_name.value):
+            await interaction.response.send_message(
+                "❌ Le nom de personnage ne doit pas contenir de chiffres. "
+                "Veuillez entrer un nom valide.",
+                ephemeral=True
+            )
+            return
+        
+        # Si le nom est valide, passe à la sélection du serveur
         view = discord.ui.View()
         view.add_item(ServerSelect(self.character_name.value))
         await interaction.response.send_message(
             f"Nom choisi : {self.character_name.value}\n**Choisissez votre serveur :**", 
             view=view,
-            ephemeral=True#True
+            ephemeral=True
         )
 
 class ServerSelect(discord.ui.Select):
