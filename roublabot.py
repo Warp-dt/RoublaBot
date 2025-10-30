@@ -43,6 +43,21 @@ class WelcomeBot(commands.Bot):
 
 bot = WelcomeBot()
 
+class RegisterButton(discord.ui.Button):
+    def __init__(self, target_user_id: int):
+        super().__init__(label="S'identifier", style=discord.ButtonStyle.primary)
+        self.target_user_id = target_user_id
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id == self.target_user_id:
+            modal = RegistrationModal()
+            await interaction.response.send_modal(modal)
+        else:
+            await interaction.response.send_message(
+                "🚫 Ce bouton est réservé à l’utilisateur concerné.",
+                ephemeral=True
+            )
+
 class RegistrationModal(discord.ui.Modal, title="Identification"):
     character_name = discord.ui.TextInput(
         label="Nom du personnage",
@@ -54,12 +69,17 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
     async def on_submit(self, interaction: discord.Interaction):
         # Vérifie si le nom contient un chiffre
         if any(char.isdigit() for char in self.character_name.value):
+            view = discord.ui.View()
+            view.add_item(RegisterButton(interaction.user.id))
+
             await interaction.response.send_message(
-                "❌ Le nom de personnage ne doit pas contenir de chiffres. "
-                "Veuillez entrer un nom valide.",
+                "❌ Le nom de personnage ne doit pas contenir de chiffres.\n"
+                "Veuillez entrer un nom valide puis cliquez sur le bouton ci-dessous pour recommencer :",
+                view=view,
                 ephemeral=True
             )
             return
+
         
         # Si le nom est valide, passe à la sélection du serveur
         view = discord.ui.View()
@@ -90,10 +110,9 @@ class ServerSelect(discord.ui.Select):
         
         if len(new_nickname) > MAX_NICKNAME_LENGTH:
             await interaction.response.send_message(
-                f"Désolé, le pseudo '{new_nickname}' est trop long. "
-                f"Il fait {len(new_nickname)} caractères alors que Discord autorise maximum {MAX_NICKNAME_LENGTH} caractères. "
-                "Veuillez réessayer avec un nom plus court.",
-                ephemeral=False#True
+                f"❌ Le pseudo '{new_nickname}' est trop long "
+                f"({len(new_nickname)}/{MAX_NICKNAME_LENGTH} caractères).",
+                ephemeral=True
             )
             return
         
@@ -106,63 +125,46 @@ class ServerSelect(discord.ui.Select):
             if role:
                 await guild_member.add_roles(role)
                 await interaction.response.edit_message(
-                    content=f"Votre pseudo a été mis à jour en : {new_nickname}\nLe rôle *{role.name}* vous a été attribué.",
+                    content=f"✅ Votre pseudo a été mis à jour en : **{new_nickname}**\n"
+                            f"Le rôle *{role.name}* vous a été attribué.",
                     view=None
                 )
             else:
                 await interaction.response.edit_message(
-                    content=f"Votre pseudo a été mis à jour en : {new_nickname}\n(Attention: Le rôle n'a pas pu être trouvé)",
+                    content=f"✅ Votre pseudo a été mis à jour en : **{new_nickname}**\n"
+                            f"(⚠️ Rôle introuvable)",
                     view=None
                 )
                 
         except discord.Forbidden:
             await interaction.response.send_message(
-                "Je n'ai pas les permissions nécessaires pour changer votre pseudo ou attribuer le rôle. "
-                "Cela peut arriver si vous êtes le propriétaire du serveur ou si mon rôle est placé trop bas.",
-                ephemeral=False#True
+                "⚠️ Je n'ai pas les permissions nécessaires pour changer votre pseudo ou attribuer le rôle.",
+                ephemeral=True               
             )
         except AttributeError:
             await interaction.response.send_message(
-                "Une erreur s'est produite. "
-                "Veuillez vérifier que je suis bien dans le serveur et que j'ai les permissions nécessaires.",
-                ephemeral=False#True
+                "❌ Une erreur s'est produite. Vérifiez mes permissions.",
+                ephemeral=True
             )
 
 @bot.event
 async def on_member_join(member):
     # Utilise le canal configuré ou par défaut le canal système
     channel_id = bot.welcome_channels.get(str(member.guild.id))
-    channel = None
-    
-    if channel_id:
-        channel = member.guild.get_channel(int(channel_id))
-    
+    channel = member.guild.get_channel(int(channel_id)) if channel_id else None
+
     if not channel:
         channel = member.guild.system_channel or member.guild.text_channels[0]
     
     if channel:
         view = discord.ui.View()
-        
-        class RegisterButton(discord.ui.Button):
-            def __init__(self):
-                super().__init__(label="S'identifier", style=discord.ButtonStyle.primary)
-            
-            async def callback(self, interaction: discord.Interaction):
-                if interaction.user.id == member.id:
-                    modal = RegistrationModal()
-                    await interaction.response.send_modal(modal)
-                else:
-                    await interaction.response.send_message(
-                        "Ce bouton est réservé au nouveau membre.",
-                        ephemeral=True
-                    )
-        
-        view.add_item(RegisterButton())
+        view.add_item(RegisterButton(member.id))
+
         await channel.send(
-            f"Bienvenue {member.mention} ! Clique sur le bouton ci-dessous pour t'identifier :"
-            ,view=view
-        )
-        
+            f"👋 Bienvenue {member.mention} !\n"
+            f"Clique sur le bouton ci-dessous pour t'identifier :",
+            view=view
+        )        
 
 @bot.tree.command(name="identification", description="Lance le processus d'identification")
 async def identification(interaction: discord.Interaction):
