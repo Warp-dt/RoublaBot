@@ -74,7 +74,7 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
 
             await interaction.response.send_message(
                 "❌ Le nom de personnage ne doit pas contenir de chiffres.\n"
-                "Veuillez entrer un nom valide puis cliquez sur le bouton ci-dessous pour recommencer :",
+                "Veuillez recommencer en fournissant un pseudo valide :",
                 view=view,
                 ephemeral=True
             )
