@@ -69,7 +69,7 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
     async def on_submit(self, interaction: discord.Interaction):
         # Vérifie si le nom contient un chiffre
         if any(char.isdigit() for char in self.character_name.value):
-            view = discord.ui.View()
+            view = discord.ui.View(timeout=None)
             view.add_item(RegisterButton(interaction.user.id))
 
             await interaction.response.send_message(
@@ -82,7 +82,7 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
 
         
         # Si le nom est valide, passe à la sélection du serveur
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)
         view.add_item(ServerSelect(self.character_name.value))
         await interaction.response.send_message(
             f"Nom choisi : {self.character_name.value}\n**Choisissez votre serveur :**", 
@@ -157,7 +157,7 @@ async def on_member_join(member):
         channel = member.guild.system_channel or member.guild.text_channels[0]
     
     if channel:
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)
         view.add_item(RegisterButton(member.id))
 
         await channel.send(
