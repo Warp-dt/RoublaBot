@@ -10,7 +10,6 @@ load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 MEMBER_ROLE_ID= 1201113600518017064 #à modifier avec l'identifiant du role que le bot doit donner
-# MEMBER_ROLE_ID = 1201113600518017064 #à modifier avec l'identifiant du role que le bot doit donner
 
 # Liste des serveurs disponibles
 SERVERS = ["Brial","Dakal","Draconiros","Hell Mina","Imagiro","Kourial","Ombre","Orukam","Rafal","Salar","Tal Kasha","Tylezia"
@@ -28,6 +27,8 @@ class WelcomeBot(commands.Bot):
         self.load_config()
         
     async def setup_hook(self):
+        # Enregistre la view persistante au démarrage
+        self.add_view(PersistentRegisterView())
         await self.tree.sync()
     
     def load_config(self):
@@ -44,19 +45,36 @@ class WelcomeBot(commands.Bot):
 bot = WelcomeBot()
 
 class RegisterButton(discord.ui.Button):
-    def __init__(self, target_user_id: int):
-        super().__init__(label="S'identifier", style=discord.ButtonStyle.primary)
-        self.target_user_id = target_user_id
+    def __init__(self):
+        super().__init__(
+            label="S'identifier", 
+            style=discord.ButtonStyle.primary,
+            custom_id="register_button_persistent"  # ID fixe pour la persistance
+        )
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id == self.target_user_id:
-            modal = RegistrationModal()
-            await interaction.response.send_modal(modal)
+        # Récupère l'utilisateur ciblé depuis la première mention du message
+        if interaction.message.mentions:
+            target_user_id = interaction.message.mentions[0].id
+            
+            if interaction.user.id == target_user_id:
+                modal = RegistrationModal()
+                await interaction.response.send_modal(modal)
+            else:
+                await interaction.response.send_message(
+                    "🚫 Ce bouton est réservé à l'utilisateur concerné.",
+                    ephemeral=True
+                )
         else:
             await interaction.response.send_message(
-                "🚫 Ce bouton est réservé à l’utilisateur concerné.",
+                "❌ Impossible d'identifier l'utilisateur ciblé.",
                 ephemeral=True
             )
+
+class PersistentRegisterView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)  # Pas de timeout
+        self.add_item(RegisterButton())
 
 class RegistrationModal(discord.ui.Modal, title="Identification"):
     character_name = discord.ui.TextInput(
@@ -70,7 +88,7 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
         # Vérifie si le nom contient un chiffre
         if any(char.isdigit() for char in self.character_name.value):
             view = discord.ui.View(timeout=None)
-            view.add_item(RegisterButton(interaction.user.id))
+            view.add_item(RetryButton(interaction.user.id))
 
             await interaction.response.send_message(
                 "❌ Le nom de personnage ne doit pas contenir de chiffres.\n"
@@ -89,6 +107,22 @@ class RegistrationModal(discord.ui.Modal, title="Identification"):
             view=view,
             ephemeral=True
         )
+
+# Bouton de réessai (utilisé dans les messages éphémères, pas besoin de persistance)
+class RetryButton(discord.ui.Button):
+    def __init__(self, target_user_id: int):
+        super().__init__(label="S'identifier", style=discord.ButtonStyle.primary)
+        self.target_user_id = target_user_id
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id == self.target_user_id:
+            modal = RegistrationModal()
+            await interaction.response.send_modal(modal)
+        else:
+            await interaction.response.send_message(
+                "🚫 Ce bouton est réservé à l'utilisateur concerné.",
+                ephemeral=True
+            )
 
 class ServerSelect(discord.ui.Select):
     def __init__(self, character_name):
@@ -157,8 +191,7 @@ async def on_member_join(member):
         channel = member.guild.system_channel or member.guild.text_channels[0]
     
     if channel:
-        view = discord.ui.View(timeout=None)
-        view.add_item(RegisterButton(member.id))
+        view = PersistentRegisterView()  # Utilise la view persistante
 
         await channel.send(
             f"👋 Bienvenue {member.mention} !\n"
